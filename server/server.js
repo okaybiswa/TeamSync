@@ -185,11 +185,13 @@ app.get("/workspaces/user/:userId", async (req, res) => {
 
     res.json({ workspaces: userWorkspaces });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      error: "Could not fetch workspaces",
-    });
-  }
+  console.error("Fetch workspaces failed:", error);
+
+  res.status(500).json({
+    error: "Could not fetch workspaces",
+    details: error instanceof Error ? error.message : String(error),
+  });
+}
 });
 
 
