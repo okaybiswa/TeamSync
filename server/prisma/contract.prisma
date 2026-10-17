@@ -1,0 +1,71 @@
+
+// use prisma-next
+
+model User {
+  id           Uuid              @id @default(uuid())
+  name         String
+  email        String            @unique
+  passwordHash String
+  createdAt    DateTime          @default(now())
+
+  memberships  WorkspaceMember[]
+  messages     Message[]
+}
+
+model Workspace {
+  id          Uuid              @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime          @default(now())
+
+  members     WorkspaceMember[]
+  channels    Channel[]
+  tasks       Task[]
+}
+
+model WorkspaceMember {
+  id          Uuid      @id @default(uuid())
+  userId      Uuid
+  workspaceId Uuid
+  role        String    @default("member")
+  joinedAt    DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@unique([userId, workspaceId])
+}
+
+model Channel {
+  id          Uuid      @id @default(uuid())
+  name        String
+  description String?
+  workspaceId Uuid
+  createdAt   DateTime  @default(now())
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  messages    Message[]
+
+  @@unique([workspaceId, name])
+}
+
+model Message {
+  id        Uuid     @id @default(uuid())
+  content   String
+  userId    Uuid
+  channelId Uuid
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+  channel   Channel  @relation(fields: [channelId], references: [id])
+}
+model Task {
+  id          Uuid      @id @default(uuid())
+  title       String
+  description String?
+  status      String    @default("TODO")
+  workspaceId Uuid
+  createdAt   DateTime  @default(now())
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+}
