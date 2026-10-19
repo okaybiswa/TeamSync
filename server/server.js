@@ -107,11 +107,14 @@ app.post("/login", async (req, res) => {
 });
 
 // 4. Create a workspace and make its creator the owner
+
 app.post("/workspaces", async (req, res) => {
+  let createdWorkspace = null;
+
   try {
     const { name, description, userId } = req.body;
 
-    if (!name || !userId) {
+    if (!name?.trim() || !userId) {
       return res.status(400).json({
         error: "Workspace name and userId are required",
       });
@@ -124,38 +127,48 @@ app.post("/workspaces", async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Create the workspace and membership together.
-    const result = await db.$transaction(async (tx) => {
-      const workspace = await tx.orm.public.Workspace.create({
-        name,
-        description: description || null,
-      });
-
-      await tx.orm.public.WorkspaceMember.create({
-        userId,
-        workspaceId: workspace.id,
-        role: "owner",
-      });
-
-      return workspace;
+    // Create the workspace first.
+    createdWorkspace = await db.orm.public.Workspace.create({
+      name: name.trim(),
+      description: description?.trim() || null,
     });
 
-    res.status(201).json({
+    // Add the creator as the workspace owner.
+    await db.orm.public.WorkspaceMember.create({
+      userId,
+      workspaceId: createdWorkspace.id,
+      role: "owner",
+    });
+
+    return res.status(201).json({
       message: "Workspace created successfully",
       workspace: {
-        id: result.id,
-        name: result.name,
-        description: result.description,
-        createdAt: result.createdAt,
+        id: createdWorkspace.id,
+        name: createdWorkspace.name,
+        description: createdWorkspace.description,
+        createdAt: createdWorkspace.createdAt,
       },
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
+    console.error("Workspace creation failed:", error);
+
+    // Best-effort cleanup if membership creation failed.
+    if (createdWorkspace) {
+      try {
+        await db.orm.public.Workspace
+          .where({ id: createdWorkspace.id })
+          .delete();
+      } catch (cleanupError) {
+        console.error("Workspace cleanup failed:", cleanupError);
+      }
+    }
+
+    return res.status(500).json({
       error: "Could not create workspace",
     });
   }
 });
+
 
 // 5. Get all workspaces belonging to a user
 app.get("/workspaces/user/:userId", async (req, res) => {
