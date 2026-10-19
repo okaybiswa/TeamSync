@@ -61,7 +61,10 @@ export default function Dashboard() {
   const [error, setError] = useState("");
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
+  const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
+const [workspaceName, setWorkspaceName] = useState("");
+const [workspaceDescription, setWorkspaceDescription] = useState("");
+const [creatingWorkspace, setCreatingWorkspace] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const shouldScrollRef = useRef(true);
 
@@ -206,6 +209,55 @@ export default function Dashboard() {
       shouldScrollRef.current = false;
     }
   }, [messages]);
+  
+async function createWorkspace(e: React.FormEvent<HTMLFormElement>) {
+  e.preventDefault();
+
+  const name = workspaceName.trim();
+  const description = workspaceDescription.trim();
+
+  if (!name || !user.id || creatingWorkspace) return;
+
+  setCreatingWorkspace(true);
+  setError("");
+
+  try {
+    const res = await fetch(`${API}/workspaces`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        description: description || null,
+        userId: user.id,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Could not create workspace.");
+    }
+
+    const created: Workspace = {
+      ...data.workspace,
+      role: "owner",
+    };
+
+    setWorkspaces((current) => [...current, created]);
+    setWorkspace(created);
+    setWorkspaceName("");
+    setWorkspaceDescription("");
+    setShowCreateWorkspace(false);
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Could not create workspace. Please try again."
+    );
+  } finally {
+    setCreatingWorkspace(false);
+  }
+}
 
   async function sendMessage(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -307,6 +359,23 @@ export default function Dashboard() {
           <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
             {sidebarCollapsed ? "•••" : "Workspace"}
           </p>
+          
+<button
+  type="button"
+  onClick={() => {
+    setShowCreateWorkspace(true);
+    setError("");
+    setMobileSidebarOpen(false);
+  }}
+  className="mb-3 flex w-full items-center gap-3 rounded-xl border border-dashed border-indigo-400/40 px-3 py-2.5 text-left text-sm font-semibold text-indigo-200 transition hover:bg-white/10"
+  title="Create workspace"
+>
+  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-500/20 text-lg">
+    +
+  </span>
+  {!sidebarCollapsed && <span>Create workspace</span>}
+</button>
+
 
           {workspaces.map((item) => (
             <button
@@ -491,6 +560,84 @@ export default function Dashboard() {
 
         <div className="flex min-h-0 flex-1 flex-col">
           <div className="flex-1 space-y-5 overflow-y-auto px-4 py-6 sm:px-7">
+            
+{showCreateWorkspace && (
+  <div className="mx-auto max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="mb-5 flex items-center justify-between gap-3">
+      <div>
+        <h2 className="text-lg font-bold">Create a workspace</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          Give your team a shared place to collaborate.
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={() => setShowCreateWorkspace(false)}
+        className="rounded-lg px-3 py-2 text-slate-500 hover:bg-slate-100"
+        aria-label="Close form"
+      >
+        ✕
+      </button>
+    </div>
+
+    <form onSubmit={createWorkspace} className="space-y-4">
+      <div>
+        <label
+          htmlFor="workspaceName"
+          className="mb-2 block text-sm font-semibold"
+        >
+          Workspace name
+        </label>
+        <input
+          id="workspaceName"
+          value={workspaceName}
+          onChange={(e) => setWorkspaceName(e.target.value)}
+          placeholder="e.g. College Project Team"
+          maxLength={100}
+          required
+          autoFocus
+          className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+        />
+      </div>
+
+      <div>
+        <label
+          htmlFor="workspaceDescription"
+          className="mb-2 block text-sm font-semibold"
+        >
+          Description (optional)
+        </label>
+        <textarea
+          id="workspaceDescription"
+          value={workspaceDescription}
+          onChange={(e) => setWorkspaceDescription(e.target.value)}
+          placeholder="What will your team work on?"
+          maxLength={500}
+          rows={3}
+          className="w-full resize-y rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+        />
+      </div>
+
+      <div className="flex justify-end gap-3">
+        <button
+          type="button"
+          onClick={() => setShowCreateWorkspace(false)}
+          className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold hover:bg-slate-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={creatingWorkspace || !workspaceName.trim()}
+          className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {creatingWorkspace ? "Creating..." : "Create workspace"}
+        </button>
+      </div>
+    </form>
+  </div>
+)}
+
             {loading && (
               <div className="space-y-4">
                 <div className="h-20 animate-pulse rounded-2xl bg-white" />
