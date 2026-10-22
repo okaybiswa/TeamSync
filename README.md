@@ -1,71 +1,107 @@
-
 # TeamSync
 
-A team collaboration platform for managing workspaces, team conversations, channels, and project tasks in one place.
+**A collaborative workspace for teams to communicate, organize tasks, and keep projects moving.**
+
+TeamSync is a full-stack team collaboration platform built to bring workspace management, channel-based conversations, and task tracking into one place. The project focuses on a clean, responsive interface and a practical workflow for teams working together.
+
+🌐 **Live Demo:** [TeamSync](https://teamsync-okaybiswa.vercel.app)  
+💻 **Repository:** [okaybiswa/TeamSync](https://github.com/okaybiswa/TeamSync)
 
 ## Features
 
-- User registration and login
-- Workspace-based collaboration
-- Channel-based messaging
-- Task creation and management
-- Kanban board with To Do, In Progress, and Done statuses
-- Responsive user interface
+- **User Authentication** — Register an account and log in to access your workspace.
+- **Workspace Management** — Create and organize separate workspaces for teams or projects.
+- **Channel-Based Messaging** — Keep team conversations organized by channel.
+- **Task Management** — Create tasks and update their status as work progresses.
+- **Kanban Board** — Track tasks across To Do, In Progress, and Done.
+- **Responsive UI** — Work with a layout designed for different screen sizes.
 
 ## Tech Stack
 
-### Frontend
-- Next.js
-- React
-- TypeScript
-- Tailwind CSS
-
-### Backend
-- Node.js
-- Express.js
-- Prisma ORM
-- PostgreSQL
+| Area | Technologies |
+|---|---|
+| Frontend | Next.js, React, TypeScript, Tailwind CSS |
+| Backend | Node.js, Express.js |
+| Database | PostgreSQL |
+| ORM | Prisma |
 
 ## Project Structure
 
 ```text
 TeamSync/
 ├── client/       # Next.js frontend
-└── server/       # Express backend
+└── server/       # Express API and database integration
 ```
 
-## Local Development
+## Getting Started
 
-### Frontend
+### Prerequisites
 
-1. Navigate to the client directory.
-2. Install dependencies using `npm install`.
-3. Configure the API URL in `client/.env.local`.
-4. Start the development server using `npm run dev`.
+- Node.js and npm
+- PostgreSQL database
+- Git
 
-### Backend
+### 1. Clone the repository
 
-1. Navigate to the server directory.
-2. Install dependencies using `npm install`.
-3. Configure the required environment variables.
-4. Start the backend using `npm start`.
+```bash
+git clone https://github.com/okaybiswa/TeamSync.git
+cd TeamSync
+```
 
-## Environment Variables
+### 2. Set up the backend
 
-Configure secrets and connection strings in local environment files. Never commit real credentials to GitHub.
+```bash
+cd server
+npm install
+```
 
-Frontend:
+Configure the backend environment variables required by your database and Prisma setup, then start the server:
+
+```bash
+npm start
+```
+
+The backend uses port `5000` by default when no other port is configured.
+
+### 3. Set up the frontend
+
+Open a second terminal from the project root:
+
+```bash
+cd client
+npm install
+```
+
+Create `client/.env.local` and configure the backend URL:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5000
 ```
 
-Backend environment variables depend on the database and Prisma configuration used by the project.
+Start the frontend development server:
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+> **Note:** Make sure the PostgreSQL connection and the backend's required environment variables are configured before running the application. Keep local environment files and credentials out of version control.
 
 ## Deployment
 
-The frontend, backend, and PostgreSQL database must be configured and deployed separately or through a platform that supports the complete application stack.
+TeamSync is deployed using the following services:
+
+- **Frontend:** Vercel
+- **Backend API:** Render
+- **Database:** PostgreSQL hosted on Render
+
+The frontend communicates with the backend through the `NEXT_PUBLIC_API_URL` environment variable. Configure the appropriate URL for each environment before deploying.
+
+## Development Status
+
+The core workspace, messaging, and task-management workflows are implemented and deployed. Further development is planned around authentication security, role-based permissions, workspace administration, and dashboard improvements.
 
 ## License
 
-No license has been selected yet.
+No open-source license has been selected yet. All rights are reserved unless a license is added to the repository.
